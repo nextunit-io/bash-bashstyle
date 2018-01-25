@@ -1,0 +1,63 @@
+#!/bin/bash
+
+BRACKETS_COLOR="\033[1;36m"
+ARROW_COLOR="\033[1;34m"
+USER_COLOR="\033[1;32m"
+PATH_COLOR="\033[1;32m"
+GIT_BRANCH_COLOR="\033[0;33m"
+GIT_BRANCH_COLOR_CHANGES="\033[1;31m"
+
+NO_COLOR="\033[0m"
+
+
+bashstyle_git_branch() {
+     BRANCH=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/' | tr -d '[:space:]')
+     CHANGES=$(git status --porcelain 2> /dev/null | wc -l)
+
+     if [ -n "$BRANCH" ]; then
+         if [ $CHANGES == 0 ]; then
+             echo -e "${GIT_BRANCH_COLOR}[$BRANCH]${NO_COLOR}";
+         else
+             echo -e "${GIT_BRANCH_COLOR}[$BRANCH ${GIT_BRANCH_COLOR_CHANGES}\u2605 ${CHANGES}${GIT_BRANCH_COLOR}]${NO_COLOR}"
+         fi
+      else
+         echo ""
+      fi
+}
+
+bashstyle_arrow() {
+     echo -e "${ARROW_COLOR}\u2192${NO_COLOR}"
+}
+
+function addStyle {
+     if [ -n "$BASHSTYLE" ] && [ -n "$1" ]; then
+          BASHSTYLE="${BASHSTYLE} "
+     fi
+
+     BASHSTYLE="${BASHSTYLE}${1}"
+}
+
+BASHSTYLE_USER="\[${BRACKETS_COLOR}\]\[[\]\[${USER_COLOR}\]\u\[${NO_COLOR}\]\[${BRACKETS_COLOR}\]\[]\]\[${NO_COLOR}\] \[\$(bashstyle_arrow)\]"
+BASHSTYLE_PATH="\[\[${PATH_COLOR}\]\w\[${NO_COLOR}\]"
+
+BASHSTYLE_ADDITIONAL_INFO=""
+
+BASHSTYLE_ADDITIONAL_INFO="\[\$(bashstyle_git_branch)"
+
+
+
+BASHSTYLE=""
+
+if [ -n "$BASHSTYLE_USER" ]; then
+     addStyle "$BASHSTYLE_USER"
+fi
+
+if [ -n "$BASHSTYLE_PATH" ]; then
+     addStyle "$BASHSTYLE_PATH"
+fi
+
+if [ -n "$BASHSTYLE_ADDITIONAL_INFO" ]; then
+     addStyle "$BASHSTYLE_ADDITIONAL_INFO"
+fi
+
+export PS1="${BASHSTYLE}: "
